@@ -47,7 +47,7 @@ public class LectureServiceTest {
     }
     
     @Test
-    @DisplayName("특정신청 성공")
+    @DisplayName("특강신청 성공")
     void testApplyLecture_Success() {
         // given
         Long lectureId = 1L;
