@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.hhplus.architecture.domain.LectureInfo;
@@ -13,6 +14,7 @@ import io.hhplus.architecture.dto.LectureResDTO;
 import io.hhplus.architecture.dto.ReserveResDTO;
 import io.hhplus.architecture.repository.LectureInfoRepository;
 import io.hhplus.architecture.repository.ReserveInfoRepository;
+import jakarta.persistence.EntityNotFoundException;
 
 
 public class LectureServiceImpl implements LectureService {
@@ -29,6 +31,7 @@ public class LectureServiceImpl implements LectureService {
 	}
 	
 	//수강신청
+	@Override
 	@Transactional
 	public String applyLecture(Long lectureId, Long userId) {
 	    // 강의 정보 조회
@@ -61,22 +64,26 @@ public class LectureServiceImpl implements LectureService {
 
 	        return "success";
 	    } else {
-	        return "fail"; // 예약 실패
+	        return "fail"; 
 	    }
 	}
 
-	     
-	     
-	     
-	     
-	 
+	//수강신청조회  
+	@Override
+	@Transactional(readOnly = true)
+	public ReserveResDTO inquirLecture(long userId, Long lectureId) {
+	
+		// 수강신청 정보 조회
+	    ReserveInfo reserveInfo = reserveInfoRepository.findByUserIdAndLectureId(userId, lectureId)
+	            .orElseThrow(() -> new EntityNotFoundException("Enrollment not found"));
 
-	
-	
-//	@Override
-//	public LectureResDTO inquirLecture(long userId, Long lectureId) {
-//		lectureRepository.selectByIdByLectureId(userId, lectrueId);
-//		return null;
-//	}
+	 
+	    ReserveResDTO responseDTO = new ReserveResDTO();
+	    responseDTO.setLectureId(reserveInfo.getLectureId());
+	    responseDTO.setUserId(reserveInfo.getUserId());
+	    responseDTO.setReserveDate(reserveInfo.getReserveDate());
+
+	    return responseDTO;
+	}
 
 }

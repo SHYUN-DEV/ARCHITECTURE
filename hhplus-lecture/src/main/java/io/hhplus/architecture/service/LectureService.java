@@ -12,6 +12,6 @@ public interface LectureService {
 	//강의신청
 	public String  applyLecture(Long userId, Long lectureId); 
 	//강의 신청 조회
-//	public LectureResDTO inquirLecture(long userId, Long lectureId);
+	public ReserveResDTO inquirLecture(long userId, Long lectureId);
 
 }

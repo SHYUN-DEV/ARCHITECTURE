@@ -33,12 +33,12 @@ public class LectureController {
     }
     
     //특강신청 여부 조회
-//    @GetMapping("/{userId}/{lectureId}/inquire")
-//    public LectureResDTO inquire(@PathVariable long userId,
-//    							 @PathVariable Long lectureId) {
-//        
-//        return lectureService.inquirLecture(userId, lectureId);
-//        
-//    }
+    @GetMapping("/{userId}/{lectureId}/inquire")
+    public ReserveResDTO inquire(@PathVariable long userId,
+    							 @PathVariable Long lectureId) {
+        
+        return lectureService.inquirLecture(userId, lectureId);
+        
+    }
 }
 

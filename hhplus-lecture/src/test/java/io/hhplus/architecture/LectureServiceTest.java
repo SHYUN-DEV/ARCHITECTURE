@@ -1,6 +1,8 @@
 package io.hhplus.architecture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -18,10 +20,13 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import io.hhplus.architecture.domain.ReserveInfo;
+import io.hhplus.architecture.dto.ReserveResDTO;
 import io.hhplus.architecture.domain.LectureInfo;
 import io.hhplus.architecture.repository.LectureInfoRepository;
 import io.hhplus.architecture.repository.ReserveInfoRepository;
 import io.hhplus.architecture.service.LectureServiceImpl;
+import jakarta.persistence.EntityNotFoundException;
+
 import static org.mockito.ArgumentMatchers.any;
 
 
@@ -104,7 +109,7 @@ public class LectureServiceTest {
     @Test
     @DisplayName("동시성 테스트")
     void testConcurrency() throws InterruptedException {
-        // given
+        
         Long userId = 1L;
         Long lectureId = 1L;
         LectureInfo lectureInfo = new LectureInfo();
@@ -113,7 +118,7 @@ public class LectureServiceTest {
         when(lectureInfoRepository.findByIdWithWriteLock(lectureId)).thenReturn(Optional.of(lectureInfo));
         when(reserveInfoRepository.existsByUserIdAndLectureId(userId, lectureId)).thenReturn(false);
 
-        // when
+       
         Thread thread1 = new Thread(() -> {
             lectureService.applyLecture(lectureId, userId);
         });
@@ -127,7 +132,7 @@ public class LectureServiceTest {
         thread1.join();
         thread2.join();
 
-        // then
+        
         verify(lectureInfoRepository, times(1)).findByIdWithWriteLock(anyLong());
         verify(reserveInfoRepository, times(2)).existsByUserIdAndLectureId(anyLong(), anyLong());
         verify(lectureInfoRepository, times(1)).save(lectureInfo);
@@ -135,29 +140,49 @@ public class LectureServiceTest {
 
     
     
+    @Test
+    @DisplayName("수강신청 정보가 존재하는 경우")
+    void testInquiryExistingEnrollment() {
+        // given
+        long userId = 1L;
+        Long lectureId = 1L;
+        ReserveInfo reserveInfo = new ReserveInfo();
+        reserveInfo.setLectureId(lectureId);
+        reserveInfo.setUserId(userId);
+
+        when(reserveInfoRepository.findByUserIdAndLectureId(userId, lectureId)).thenReturn(Optional.of(reserveInfo));
+
+        // when
+        ReserveResDTO result = lectureService.inquirLecture(userId, lectureId);
+
+        // then
+        assertNotNull(result);
+        assertEquals(lectureId, result.getLectureId());
+        assertEquals(userId, result.getUserId());
+    }
+
+    
+    @Test
+    @DisplayName("수강신청 정보가 존재하지 않는 경우")
+    void testInquiryNonExistingEnrollment() {
+        
+        long userId = 1L;
+        Long lectureId = 1L;
+
+        when(reserveInfoRepository.findByUserIdAndLectureId(userId, lectureId)).thenReturn(java.util.Optional.empty());
+
+        
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
+        	lectureService.inquirLecture(userId, lectureId);
+        });
+
+        
+        assertEquals("Enrollment not found", exception.getMessage());
+    }
     
 
 
-    
-//    @Test
-//    @DisplayName("수강신청 - 실패")
-//    void testApplyLectureFail() {
-//        // given
-//        Long userId = 1L;
-//        Long lectureId = 1L;
-//        ReserveResDTO existingReservation = new ReserveResDTO(); // 이미 수강 신청한 경우
-//        when(reserveInfoRepository.selectById(userId, lectureId)).thenReturn(existingReservation);
-//        
-//        // when
-//        String result = lectureService.applyLecture(userId, lectureId);
-//        
-//        // then
-//        assertEquals("fail", result);
-//    }
-//    
-    
 
-    
     
     
     
