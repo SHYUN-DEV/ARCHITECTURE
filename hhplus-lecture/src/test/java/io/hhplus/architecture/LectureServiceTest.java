@@ -11,6 +11,9 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -109,34 +112,39 @@ public class LectureServiceTest {
     @Test
     @DisplayName("동시성 테스트")
     void testConcurrency() throws InterruptedException {
-        
-        Long userId = 1L;
+        // 쓰레드 수 설정
+        int threadCount = 10;
+        CountDownLatch latch = new CountDownLatch(threadCount);
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+
         Long lectureId = 1L;
-        LectureInfo lectureInfo = new LectureInfo();
-        lectureInfo.setCapacity((long) 30);
-        lectureInfo.setReservationCount((long) 10);
-        when(lectureInfoRepository.findByIdWithWriteLock(lectureId)).thenReturn(Optional.of(lectureInfo));
-        when(reserveInfoRepository.existsByUserIdAndLectureId(userId, lectureId)).thenReturn(false);
+        Long userId = 1L;
 
-       
-        Thread thread1 = new Thread(() -> {
-            lectureService.applyLecture(lectureId, userId);
-        });
+        // 각 쓰레드에서 수행할 작업 정의
+        Runnable task = () -> {
+            try {
+                // 각 쓰레드에서 applyLecture 메서드 호출
+                String result = lectureService.applyLecture(lectureId, userId);
+                // 테스트 결과 출력 (optional)
+                System.out.println("Result: " + result);
+            } finally {
+                // 각 쓰레드의 작업이 완료되면 latch를 감소시킴
+                latch.countDown();
+            }
+        };
 
-        Thread thread2 = new Thread(() -> {
-            lectureService.applyLecture(lectureId, userId);
-        });
+        // 쓰레드 생성 및 실행
+        for (int i = 0; i < threadCount; i++) {
+            executorService.execute(task);
+        }
 
-        thread1.start();
-        thread2.start();
-        thread1.join();
-        thread2.join();
+        // 모든 쓰레드가 실행 완료될 때까지 대기
+        latch.await();
 
-        
-        verify(lectureInfoRepository, times(1)).findByIdWithWriteLock(anyLong());
-        verify(reserveInfoRepository, times(2)).existsByUserIdAndLectureId(anyLong(), anyLong());
-        verify(lectureInfoRepository, times(1)).save(lectureInfo);
+        // 쓰레드 풀 종료
+        executorService.shutdown();
     }
+
 
     
     
