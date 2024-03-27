@@ -4,6 +4,8 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import io.hhplus.architecture.domain.LectureInfo;
 import io.hhplus.architecture.dto.LectureResDTO;
@@ -13,9 +15,8 @@ import jakarta.persistence.LockModeType;
 public interface LectureInfoRepository extends JpaRepository<LectureInfo, Long> {
 
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
-	Optional<LectureInfo> findByIdWithWriteLock(Long lectureId);
-
-//	ReserveResDTO selectByUserIdByAndLectureId(long userId, Long lectureId);
+	@Query("SELECT l FROM LectureInfo l WHERE l.id = :lectureId")
+    Optional<LectureInfo> findByIdWithWriteLock(@Param("lectureId") Long lectureId);
 
 
 

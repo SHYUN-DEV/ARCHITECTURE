@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.hhplus.architecture.domain.LectureInfo;
@@ -16,7 +17,7 @@ import io.hhplus.architecture.repository.LectureInfoRepository;
 import io.hhplus.architecture.repository.ReserveInfoRepository;
 import jakarta.persistence.EntityNotFoundException;
 
-
+@Service
 public class LectureServiceImpl implements LectureService {
 	
 	

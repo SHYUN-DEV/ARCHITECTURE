@@ -1,12 +1,9 @@
 package io.hhplus.architecture.service;
 
 
-import org.springframework.stereotype.Service;
-
-import io.hhplus.architecture.dto.LectureResDTO;
 import io.hhplus.architecture.dto.ReserveResDTO;
 
-@Service
+
 public interface LectureService {
 
 	//강의신청
